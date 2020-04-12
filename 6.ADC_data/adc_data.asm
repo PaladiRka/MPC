@@ -10,61 +10,62 @@ ORG 0033H ; (ADC ISR)
 
 ORG 4bh
 BEGIN_AGAIN:
-	MOV	R0,		#030h ; (DPTR store)
-	MOV	@R0,		#00000
+	MOV	R0,		        #030h ; (DPTR store)
+	MOV	@R0,		    #00000
 	;Init ADC
-	MOV	DMAL,		#000	; First addr for ADC date
-	MOV     	ADCCON1,	#062h	; power up ADC & enable Timer2 mode
-	MOV	ADCCON2,	00000000b
-	MOV	TH2,		#0FFh
-	MOV	TL2,		#0F0h
-	MOV	RCAP2L,	#0D2h	; sample period = 2 * T2 reload prd
-	MOV	RCAP2H,	#0FFh	;   = 2*(10000h-FFD2h)*1.085us
+	MOV	    DMAL,		#000	; First addr for ADC date
+	MOV     ADCCON1,	#062h	; power up ADC & enable Timer2 mode
+	MOV	    ADCCON2,	#00000000b
+	MOV	    TH2,		#0FFh
+	MOV	    TL2,		#0F0h
+	MOV	    RCAP2L,	    #0D2h	; sample period = 2 * T2 reload prd
+	MOV	    RCAP2H,	    #0FFh	;   = 2*(10000h-FFD2h)*1.085us
 	SETB	EADC		; enable ADC interrupt
-	SETB	EA		; enable Interrupt
-	SETB	TR2		; Start Timer2
+	SETB	EA		    ; enable Interrupt
+	SETB	TR2		    ; Start Timer2
 
-	MOV	R0,		#030h ; Addr DPL
-WAIT:	CJNE	@R0,		#14h,		WAIT
-	CLR	TR2		; Stop Timer2
-	CLR	EA		; interrupt disable
-	MOV	DPTR,		#00
+	MOV	    R0,		    #030h ; Addr DPL
+WAIT:	
+    CJNE	@R0,		#14h,		WAIT
+	CLR	    TR2		; Stop Timer2
+	CLR	    EA		; interrupt disable
+	MOV	    DPTR,		#00
 
 	ACALL	MEAN_TEN_FUNC
 	; R1 - low byte
 	; R4 - high byte
-	MOV	DPTR,		#QMAX
-	MOV	A,		#00h
+	MOV	    DPTR,		#QMAX
+	MOV	    A,		#00h
 	MOVC	A,		@A + DPTR
-	CLR	C
+	CLR	    C
 	SUBB	A,		R4
-	JNZ	HIGH_BYTES_NOT_EQUAL_1
-	MOV	A,		#01h
+	JNZ	    HIGH_BYTES_NOT_EQUAL_1
+	MOV	    A,		#01h
 	MOVC	A,		@A + DPTR
-	CLR	C
+	CLR	    C
 	SUBB	A,		R1
 HIGH_BYTES_NOT_EQUAL_1:
-	JNC	NOT_BIGGEST
-	MOV	P1,		#03h
-	JMP	BEGIN_AGAIN
+	JNC	    NOT_BIGGEST
+	MOV	    P1,		#03h
+	JMP	    BEGIN_AGAIN
 NOT_BIGGEST:
-	MOV	DPTR,		#QMIN
-	MOV	A,		#00h
+	MOV	    DPTR,		#QMIN
+	MOV	    A,		#00h
 	MOVC	A,		@A + DPTR
-	CLR	C
+	CLR	    C
 	SUBB	A,		R4
 	JNZ	HIGH_BYTES_NOT_EQUAL_2
-	MOV	A,		#01h
+	MOV	    A,		#01h
 	MOVC	A,		@A + DPTR
-	CLR	C
+	CLR	    C
 	SUBB	A,		R1
 HIGH_BYTES_NOT_EQUAL_2:
-	JC	NOT_LOWEST
-	MOV	P1,		#00h
-	JMP	BEGIN_AGAIN
+	JC	    NOT_LOWEST
+	MOV	    P1,		#00h
+	JMP	    BEGIN_AGAIN
 NOT_LOWEST:
-	MOV	P1,		#01h
-	JMP	BEGIN_AGAIN
+	MOV	    P1,		#01h
+	JMP	    BEGIN_AGAIN
 
 MEAN_TEN_FUNC:
 	; input:
